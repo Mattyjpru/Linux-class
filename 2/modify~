@@ -1,0 +1,34 @@
+
+#!/bin/sh
+#HW2
+
+if [ $# == 0 ]; then
+        echo 'usage: modify filename [filename ...]'
+
+else
+    	for i in $*
+        do
+			if [ -d $i ]; then
+                        	echo "modify: $i is a directory."
+                	elif [ -x $i ]; then
+                        	echo "modify: $i, cannot edit executables."
+			else
+				checkAscii=`file $i | sed 's/.*\(ASCII text\).*/ASCII/'`
+                		if [ "$checkAscii" = "ASCII" ]; then
+ed -s -v $i << END
+
+\$a
+Modified on: `date +"%A, %b %d, %Y: %H%M"`
+Modified by: Matthew Pru
+.
+1m2
+wq
+END
+sed -i 's/Gradez/Grades/g' $i
+                		else echo "$i filetype not supported"
+				fi
+               		 fi
+
+        done
+fi
+

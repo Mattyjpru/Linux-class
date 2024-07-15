@@ -1,0 +1,99 @@
+///////////////////////////////////////////////////////////////////////////////
+// wyls.c
+// Matthew Pru
+// COSC 3750 Spring 2023
+// Assignment 5
+// Last Modified 3-5-2023
+// Pseudocode for the 5th programming assignment for linux programming
+///////////////////////////////////////////////
+There will be two functions besides main. One that tells 
+the program what content to print, and another to print it.
+Include:stdio, errno, string, pwd, dirent, time, uniate, stdlib, sys/stat, sys/types, string, math
+
+Main function, takes in number of arguments(argc) and an array of arguments(argv[])
+	IF there are no arguments, error
+	Set a counter for options and two integers for h and n options
+	Set a shift counter
+	Set an integer to act as a boolean(gettingOption)
+	IF the only argument is the executable, 
+		Send “.” To the function that lists content
+	ELSE
+	For all of the arguments(including a condition that stops this loop if the boolean has changed)
+		IF the first char in an argument is ‘-‘
+			Set an iterator to 0
+			WHILE the character being read is not \0
+				IF a character in the argument is an n
+					The int for n option is set to 1
+				ELSE IF it is h
+					The int for h option is set to 2
+				ELSE p
+					print an error and quit (an illicit option char is present)
+			Increment the shift int
+		ELSE	
+			Change the “boolean”
+	Set options to the sum of n and h option ints
+	IF the shift int is the same as arc
+		Send “.” To the content listing function
+	ELSE
+		Send all the items in argv (starting at the shifted location) to the listing function
+
+//////////////////////////////////////////////////////////////////////////
+
+Function to list content that will be printed, takes in a char* name and the options int from main, returns void
+	Set a struct stat “buf”
+	lstat the name being sent and
+	IF it returns -1
+		print an error
+	ELSE
+		Create a DIR* called directory
+		IF you try to open it and it is null
+			Print an error message
+		ELSE IF
+			Create a struct dirent# Direc
+			While reading Direc returns something other than null
+				IF Direc is a directory that isn’t “.” Or “..”
+					Create a buffer and pass it the path to Direc
+					Lstat that path and store it in Buf
+					Send Direc’s name, Buf and the options from main to the writing function
+			Close the directory
+		ELSE
+			Send the name, Buf and the options from main to the writing function
+
+///////////////////////////////////////////////////////////////////////////
+Function to print information, takes in a char* name, struct stat Buf, and the options from main, returns void
+	Get the user ID (uid) and group ID ()did from buf and store in passwd* and group* respectively
+	Print the permissions for Buf
+	IF uid is not null
+		IF n or both n and h options have been set (options from main = 1 or 3)
+			print the user ID as a number
+		ELSE
+			print the user ID as a string
+	IF gid is not null
+		IF n or both n and h options have been set (options from main = 1 or 3)
+			print the group ID as a number
+		ELSE
+			print the group ID as a string
+	IF h or both n and h options have been set (options from main = 2 or 3)
+		Set a counter to 0
+		Set an amount variable to the size of the file in bytes
+		WHILE the amount is greater than 1024
+			divide it by 1024 and increment the counter
+		Create and array to hold suffixes K ,M, and G		IF the final amount has no decimal value
+			print the amount variable as an integer, followed by the suffix at “counter” location in the 			\ suffix array
+		ELSE
+			Print the amount as a float rounded to one decimal, followed by the suffix at “counter” 
+			/ location in the suffix array
+	ELSE
+		print the file size in bytes
+	Create a buffer for the date and time
+	Create a time_t object that is equal to the mtime stored in Buf and a tm* struct that is the localtime() of the 	\ time_t object
+	Create a time_t that is the current time
+	IF the time object is more than 180 days older than the current time
+		Print the time in short month, day without leading 0, year form
+	ELSE
+		Print the time in short month, day without leading 0, time in hours:minutes form
+	Print the name of the file sent to this function
+	IF the file sent to this function is a link
+		Print an arrow and the name of the file this link points to
+	Start a new line
+

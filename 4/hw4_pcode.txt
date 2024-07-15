@@ -1,0 +1,42 @@
+
+//////////////////////////////////////////////////////////////////////////////////
+// Wycat.c
+// Matthew Pru
+// COSC 3750 Spring 2023
+// Assignment 3
+// Last Modified 2-12-2023
+// A homemade C program to run the cat operation which will 
+// repeat the contents of a file to standard output
+/////////////////////////////////////////////////////////////////////////////////
+
+Include: errno, string, stdio
+
+Function accessFile(file reference fp  int bufferSize): for reading and writing, void return type
+ Create a character array buffer whose size is taken from the parameter (for use in fread and fwrite)
+ Create two size_t’s in and out that will be the return size of fread and fwrite
+ DO 
+  READ in a file reference and set in to the return value
+  IF that size is less than the buffer size (this could indicate end of file)
+   IF there is an error 
+    print an error message
+   Close the file
+  WRITE the contents of the buffer to stdout and store the return value in out
+  IF the size of in and out are not the same
+   Print an error message
+ WHILE loop stop condition is in matches the buffer size
+
+Function  Main(int argc, char** argv[]): main function of the program, int return type
+ Set a buffer size to 4096 (this will be used in function calls)
+ IF the only argument is the executable
+  Pass stdin to accessFile (this will input from standard in and output to standard out)
+ ELSE
+  FORALL of the arguments
+   IF the argument matches “-“ (use string compare) (edit: only compare to string of length 1 or else core will be dumped)
+    Pass stdin to accessFile (this will input from standard in and output to standard out)
+   ELSE
+    OPEN the file and set a file reference “fp”
+    IF the file doesn’t exist
+    Print an error message using error
+    ELSE pass fp to accessFiles
+    Close fp
+ Return 0 (main has int return type)

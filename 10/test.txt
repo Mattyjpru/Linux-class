@@ -1,0 +1,8 @@
+cat
+Makefile
+test.txt
+wyscanner.c
+wyscanner.h
+wyshell
+wyshell.c
+wyshell.h

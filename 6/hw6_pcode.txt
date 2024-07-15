@@ -1,0 +1,239 @@
+//////////////////////////////////////////////////////////////////
+// hw6pcode_pru.txt
+// Matthew Pru
+// COSC 3750 Spring 2023
+// Assignment 6
+// Last Modified 3-20-2023
+// pseudocode for wytar program
+//////////////////////////////////////////////////////////////////
+
+Main function. takes args and argv
+  Set option, file flag, target index, and options already set 
+  :flag integer variables all to 0
+  For all arguments except the executable given that the file flag is still 0
+    If the first character is a ‘-‘
+      While the character being read isn’t a null
+        If the character being read is ‘c’
+          If the options already set flag is 0
+            set the option variable to 1 and already used flag to 1
+          Else
+            print an error and quit the program
+        Else If the character being read is ‘x’
+          If the options already set flag is 0
+            set the option variable to 2 and already used flag to 1
+          Else
+            print an error and quit the program
+        Else If the character being read is ‘f’
+          set the file flag to 1 and the target index to the next 
+          :argument in argv
+          If the argument at the target index starts with ‘-‘
+            print an error and quit the program
+        Else print an error message
+        increment character to be read
+  If either the file or options set flags are still 0
+    print error message and quit the program
+  If options are set to 1
+    create a target file
+    open it
+    If it doesn’t open
+      print an error message and quit the program
+    For the rest of the arguments starting at index 4
+      create a stat structure and lstat the info from the argument into it
+      If it returns -1
+        print an error message
+      Else
+        send it to createHeader(which will call another file)
+        :along with the stat and the name of the file
+      make a buffer of 512. Bytes and fill it with zeros
+      add two of this buffer to the end of the target file
+      close the target file
+  Else if option is set to two
+    send the target file to the extract function
+
+Function to create a header. Takes a file name, stat, and file pointer
+  allocate 512 bytes to a new tar header and fill it with zeros
+  If the stat hold a directory type
+    set tar header to directory
+  Else If the stat hold a link type
+    set tar header to link
+  Else If the stat hold a regular file type
+    set tar header to regular
+  Else print an error
+  copy macros for the version type and version length 
+  :into the tar header version
+  If the tar header is set to directory
+    If the name doesn’t end in ‘/‘
+      add a ‘/‘
+    If the file name is less than 100 characters, 
+      set the tar header name to the file name
+      append a ‘\0’ to the end of the tar header name
+    Else If the length is exactly 100
+      set the tar header name to the file name
+    Else If the file name is greater than 255, 
+      return
+    Else (the length is between 100 and 255)
+      set an index integer to 0
+      create a found integer variable
+        For all chars in the name(given that the index remains below 155)
+          if a char in the file name is ‘/‘ set the found 
+          :integer to that index
+          increment the index variable
+          (this will find the final / within 155 characters)
+        If the loop gets through the while file name and doesn’t find ‘/‘
+          return
+        Else
+          copy the file name from the start to the found 
+          :variable index into the tar header prefix
+          copy the rest of the file name into the tar header name
+  Else if the tar header is set to a link
+    fill a buffer with the location that the link points to
+    If that returns -1
+      print an error and return
+    If it returns a size less than 100
+      copy the file name into the tar header name and append a nul
+      set the tar header link name to the file that the link points to
+    Else if it returns size 100
+      copy the file name into the tar header name
+      set the tar header link name to the file that the link points to
+    Else return
+  Else the tar header must be set to a regular file
+    do the same series of operations as the directory case to 
+    -set the tar header name except for appending a ‘/‘ to the end
+  create a passwd pointer and assign it the pwuid from the stat
+    If it is NULL
+      print an error message and return
+    Else 
+      fill the tar header uid with the octal representation of the stat uid
+      set the tar header uname that the pswd points to and append a nul
+  create a group pointer and assign it the grgid from the stat
+    If it is NULL
+      print an error message and return
+    Else 
+      fill the tar header gid with the octal representation of the stat gid
+      set the tar header gname that the group points to and append a nul
+  If the tar header is set to a link or directory
+    fill the tar header size with 0’s
+  Else
+    fill the tar header with the stat-ed size
+  set the mode to the binary and of the stat mode and 07777 and append a null
+  set the dev major and dev minor to octal 0’s
+   set the tar header time to the time of the stat in octal
+  set the tar header magic number and magic length to predefined macros
+  set the whole tar header checksum to spaces
+  create a temp integer variable
+  create a buffer that is all of the characters in the header
+    add their ascii representation to the temp
+  set the tar header checksum tot he temp in octal representation
+  set the 6th index of the checksum to a nul
+  set the 7th (final) index of the checksum to a space
+  Write the header to the target file
+  If the tar header is set to directory
+    try to open the associated directory
+    If it is NULL
+      print an error and return
+    Else
+      read the directory into a direct struct
+      While it is not NULL
+        excluding . And .. directories
+          create a path buffer and fill it with the directory name 
+          :and a file in the directory
+          lstat that path buffer and store it into the stat
+          send the path buffer, stat, and target back to 
+          :the function recursively
+          (this will create headers for all files and subdirectories)
+        reset the direc 
+      close the directory
+  If the tar header is set to regular file
+    send the file name, stat-ed size, and target file 
+    :to the file data function
+
+Function to write file info to a target. Takes a file name, 
+:file size, and file pointer
+  open an input file (via the file name) to read bytes from
+  create a 512 byte buffer
+  DO
+    read the file name into the buffer
+    If the file size is less than 51 bytes
+      fill the rest of the buffer with 0’s
+    write the buffer to the target file
+  While the return of the read and write are both 512
+  If the write return is not 512
+    print an error message
+  close the input file
+  
+Function to extract data from a tar file, takes in a char * file name
+  create a wytar file and open it
+  If it is NULL
+    print an error and return
+  If the file size is less than 512
+    print an error and return
+  Do
+    create a new currentFile tar header
+    read the first 512 bytes of the file name into the currentFile header
+    create a stitiched path buffer
+    If the currentFile header has a prefix
+      write the currentFile prefix to the buffer and append a ‘/‘
+      append the currentFile name onto the buffer
+    Else
+      just copy the currentFile name to the buffer
+    make a temporary tar header and copy the currentFile into it
+    set the checksum of the temp header to all spaces
+    run the same checksum calculation on that temp header
+    set a new checksum int to the currentFile checksum - the newly calculated 
+    :checksum from temp header
+    If that checksum int is not 0,
+      print an error message  
+      return
+    If currentFile is a regular file
+      create a new file
+      create a subpath buffer
+      create an int to hold the position of a last ‘/‘
+      set errno to 0 just in case
+      change the permissions of the new file to that 
+      :stored in currentFile’s mode
+      try to open the new file with the stitched path
+      If errno is set to ENOENT
+        For all chars in the stitched path, moving backwards and 
+         -given that the last ‘/‘ has not been found
+          If the processed index is ‘/‘
+            copy the stitched path up until the current index to subPath
+            set last ‘/‘ found to 1
+        send the subpath and 0755 (directory permissions) to 
+        :create directory function
+        try again to open the new file
+      set an int ‘blocks’ to the ceiling of the currentFile size/512
+      set an int ‘extra’ to the remainder of the currentFile size%512
+      while blocks is not 0
+        create a buffer
+        read a 512 byte block from the wytar file into the buffer
+        If blocks is not 1 and extra is 0 (file size is a multiple of 512)
+          write the whole 512 byte buffer to the new file
+        Else
+          only write the extra number of bytes to the new file
+          (this allows the 0 padding to be read but not written)
+        decrement block count by 1
+      close the new file
+    Else if currentFile is a directory
+      send it to create directory function
+    Else if the currentFile is a link
+      create a new file
+      use the same process as in regular file case to make the stitched path
+      set the new file to fopen of the currentFile link name
+      make a symlink from the currentFile name to the new file 
+  While there are more than two 512 byte data blocks left in the wytar file
+  close the wytar file
+
+Function to create a directory path takes in a path buffer and 
+:set of permissions
+  If the last character in the path is a ‘/‘
+    remove it
+  try to make a directory with the path
+  If that attempt doesn’t return 0
+    For all characters in the path
+      If the character is ‘/‘
+        set it to nul
+        send the path back to create directory function
+    retry making directory(s) with the path
+  If that attempt still doesn’t return 0
+    print an error (some other issue)    
+

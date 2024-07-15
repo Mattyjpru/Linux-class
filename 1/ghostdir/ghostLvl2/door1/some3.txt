@@ -1,0 +1,27 @@
+Question 2: [10 points]
+Use grep to find all of the lines in some files that contain the string tomato. Your
+output will display the line numbers of the matching lines. For this one, use one or
+more filenames in place of the word some. Just read the manpage, this is simple. tomato
+In this, some does not always mean use wildcards. I could just list four files on the
+command line. But I expect to see a line that shows that you tried it with more than
+one file at a time. tomato
+tomato
+
+Question 3: [10 points]
+Use grep and wc to count the number of lines in some files that do NOT contain the
+word pepper. You should not use grep’s “-c” option because I want a single line
+of output from the command with a total line count regardless of the number of files
+processed at one time. pepper  Note: This will require a pipe. It will very definitely NOT
+require any temporary files or pepper any utilities other that the two specified.
+Some files is the same as the previous problem.
+pepper
+
+Question 4: [10 points]
+Use find Gade and grep to print the lines in the all the “.txt” files (like in the first problem)
+that have the string Grade in them. The output should include the name of the
+matching file(s) as well as the that actual matching line(s) of text. Do not number the
+lines. READ the man page on find. This will require the use of find’s “-exec” and
+“-name” options. Grade This WILL NOT require any pipes or any other utilities besides find
+and grep. Be careful to protect all wildcards in filenames with single quotes. If you do
+NOT use find to locate the files, the answer is just wrong. Grade
+
